@@ -42,6 +42,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import static java.lang.annotation.RetentionPolicy.SOURCE;
@@ -1756,7 +1758,6 @@ public class NumberPicker extends LinearLayout {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        // save canvas
         canvas.save();
 
         final boolean showSelectorWheel = !mHideWheelUntilFocused || hasFocus();
@@ -1941,19 +1942,47 @@ public class NumberPicker extends LinearLayout {
     }
 
     private void drawText(String text, float x, float y, Paint paint, Canvas canvas) {
-        if (text.contains("\n")) {
-            final String[] lines = text.split("\n");
-            final float height = Math.abs(paint.descent() + paint.ascent())
-                    * mLineSpacingMultiplier;
-            final float diff = (lines.length - 1) * height / 2;
-            y -= diff;
-            for (String line : lines) {
-                canvas.drawText(line, x, y, paint);
-                y += height;
-            }
-        } else {
-            canvas.drawText(text, x, y, paint);
+        // Split text by new lines
+        String[] lines = text.split("\n");
+        List<String> allLines = new ArrayList<>();
+        for (String line : lines) {
+            allLines.addAll(wrapText(line, paint, getWidth() - getPaddingLeft() - getPaddingRight()));
         }
+        float height = Math.abs(paint.descent() + paint.ascent()) * mLineSpacingMultiplier;
+        float totalTextHeight = height * allLines.size();
+        float yOffset = y - totalTextHeight / 2 + height / 2;  // Adjust for vertical centering
+
+        for (String line : lines) {
+            List<String> wrappedLines = wrapText(line, paint, getWidth() - getPaddingLeft() - getPaddingRight());
+            for (String wrappedLine : wrappedLines) {
+                canvas.drawText(wrappedLine, x, yOffset, paint);
+                yOffset += height;
+            }
+        }
+    }
+    // Helper method to wrap text to multiple lines based on width
+    private List<String> wrapText(String text, Paint paint, float maxWidth) {
+        List<String> wrappedLines = new ArrayList<>();
+        String[] words = text.split(" ");
+        StringBuilder line = new StringBuilder();
+
+        for (String word : words) {
+            if (paint.measureText(line + " " + word) <= maxWidth) {
+                if (line.length() > 0) {
+                    line.append(" ");
+                }
+                line.append(word);
+            } else {
+                wrappedLines.add(line.toString());
+                line = new StringBuilder(word);
+            }
+        }
+
+        if (line.length() > 0) {
+            wrappedLines.add(line.toString());
+        }
+
+        return wrappedLines;
     }
 
     @Override
