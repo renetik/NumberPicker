@@ -23,6 +23,8 @@ import android.view.ViewConfiguration;
 import android.view.animation.AnimationUtils;
 import android.view.animation.Interpolator;
 
+import androidx.annotation.Nullable;
+
 
 /**
  * <p>This class encapsulates scrolling. You can use scrollers ({@link Scroller}
@@ -59,7 +61,7 @@ import android.view.animation.Interpolator;
  *    ...
  * }</pre>
  */
-public class Scroller  {
+public class Scroller {
     private final Interpolator mInterpolator;
 
     private int mMode;
@@ -82,7 +84,7 @@ public class Scroller  {
     private float mDeltaX;
     private float mDeltaY;
     private boolean mFinished;
-    private boolean mFlywheel;
+    private final boolean mFlywheel;
 
     private float mVelocity;
     private float mCurrVelocity;
@@ -94,7 +96,7 @@ public class Scroller  {
     private static final int SCROLL_MODE = 0;
     private static final int FLING_MODE = 1;
 
-    private static float DECELERATION_RATE = (float) (Math.log(0.78) / Math.log(0.9));
+    private static final float DECELERATION_RATE = (float) (Math.log(0.78) / Math.log(0.9));
     private static final float INFLEXION = 0.35f; // Tension lines cross at (INFLEXION, 1)
     private static final float START_TENSION = 0.5f;
     private static final float END_TENSION = 1.0f;
@@ -109,7 +111,7 @@ public class Scroller  {
     private final float mPpi;
 
     // A context-specific coefficient adjusted to physical values.
-    private float mPhysicalCoeff;
+    private final float mPhysicalCoeff;
 
     static {
         float x_min = 0.0f;
@@ -166,13 +168,9 @@ public class Scroller  {
      * null, the default (viscous) interpolator will be used. Specify whether or
      * not to support progressive "flywheel" behavior in flinging.
      */
-    public Scroller(Context context, Interpolator interpolator, boolean flywheel) {
+    public Scroller(Context context, @Nullable Interpolator interpolator, boolean flywheel) {
         mFinished = true;
-        if (interpolator == null) {
-            mInterpolator = new ViscousFluidInterpolator();
-        } else {
-            mInterpolator = interpolator;
-        }
+        mInterpolator = interpolator == null ? new ViscousFluidInterpolator() : interpolator;
         mPpi = context.getResources().getDisplayMetrics().density * 160.0f;
         mDeceleration = computeDeceleration(ViewConfiguration.getScrollFriction());
         mFlywheel = flywheel;
@@ -185,7 +183,7 @@ public class Scroller  {
      * is {@link ViewConfiguration#getScrollFriction}.
      *
      * @param friction A scalar dimension-less value representing the coefficient of
-     *         friction.
+     *                 friction.
      */
     public final void setFriction(float friction) {
         mDeceleration = computeDeceleration(friction);
@@ -200,7 +198,6 @@ public class Scroller  {
     }
 
     /**
-     *
      * Returns whether the scroller has finished scrolling.
      *
      * @return True if the scroller has finished scrolling, false otherwise.
@@ -301,7 +298,7 @@ public class Scroller  {
             return false;
         }
 
-        int timePassed = (int)(AnimationUtils.currentAnimationTimeMillis() - mStartTime);
+        int timePassed = (int) (AnimationUtils.currentAnimationTimeMillis() - mStartTime);
 
         if (timePassed < mDuration) {
             switch (mMode) {
@@ -342,8 +339,7 @@ public class Scroller  {
 
                     break;
             }
-        }
-        else {
+        } else {
             mCurrX = mFinalX;
             mCurrY = mFinalY;
             mFinished = true;
@@ -357,13 +353,13 @@ public class Scroller  {
      * duration.
      *
      * @param startX Starting horizontal scroll offset in pixels. Positive
-     *        numbers will scroll the content to the left.
+     *               numbers will scroll the content to the left.
      * @param startY Starting vertical scroll offset in pixels. Positive numbers
-     *        will scroll the content up.
-     * @param dx Horizontal distance to travel. Positive numbers will scroll the
-     *        content to the left.
-     * @param dy Vertical distance to travel. Positive numbers will scroll the
-     *        content up.
+     *               will scroll the content up.
+     * @param dx     Horizontal distance to travel. Positive numbers will scroll the
+     *               content to the left.
+     * @param dy     Vertical distance to travel. Positive numbers will scroll the
+     *               content up.
      */
     public void startScroll(int startX, int startY, int dx, int dy) {
         startScroll(startX, startY, dx, dy, DEFAULT_DURATION);
@@ -373,14 +369,14 @@ public class Scroller  {
      * Start scrolling by providing a starting point, the distance to travel,
      * and the duration of the scroll.
      *
-     * @param startX Starting horizontal scroll offset in pixels. Positive
-     *        numbers will scroll the content to the left.
-     * @param startY Starting vertical scroll offset in pixels. Positive numbers
-     *        will scroll the content up.
-     * @param dx Horizontal distance to travel. Positive numbers will scroll the
-     *        content to the left.
-     * @param dy Vertical distance to travel. Positive numbers will scroll the
-     *        content up.
+     * @param startX   Starting horizontal scroll offset in pixels. Positive
+     *                 numbers will scroll the content to the left.
+     * @param startY   Starting vertical scroll offset in pixels. Positive numbers
+     *                 will scroll the content up.
+     * @param dx       Horizontal distance to travel. Positive numbers will scroll the
+     *                 content to the left.
+     * @param dy       Vertical distance to travel. Positive numbers will scroll the
+     *                 content up.
      * @param duration Duration of the scroll in milliseconds.
      */
     public void startScroll(int startX, int startY, int dx, int dy, int duration) {
@@ -401,20 +397,20 @@ public class Scroller  {
      * Start scrolling based on a fling gesture. The distance travelled will
      * depend on the initial velocity of the fling.
      *
-     * @param startX Starting point of the scroll (X)
-     * @param startY Starting point of the scroll (Y)
+     * @param startX    Starting point of the scroll (X)
+     * @param startY    Starting point of the scroll (Y)
      * @param velocityX Initial velocity of the fling (X) measured in pixels per
-     *        second.
+     *                  second.
      * @param velocityY Initial velocity of the fling (Y) measured in pixels per
-     *        second
-     * @param minX Minimum X value. The scroller will not scroll past this
-     *        point.
-     * @param maxX Maximum X value. The scroller will not scroll past this
-     *        point.
-     * @param minY Minimum Y value. The scroller will not scroll past this
-     *        point.
-     * @param maxY Maximum Y value. The scroller will not scroll past this
-     *        point.
+     *                  second
+     * @param minX      Minimum X value. The scroller will not scroll past this
+     *                  point.
+     * @param maxX      Maximum X value. The scroller will not scroll past this
+     *                  point.
+     * @param minY      Minimum Y value. The scroller will not scroll past this
+     *                  point.
+     * @param maxY      Maximum Y value. The scroller will not scroll past this
+     *                  point.
      */
     public void fling(int startX, int startY, int velocityX, int velocityY,
                       int minX, int maxX, int minY, int maxY) {
@@ -433,8 +429,8 @@ public class Scroller  {
             float oldVelocityY = ndy * oldVel;
             if (Math.signum(velocityX) == Math.signum(oldVelocityX) &&
                     Math.signum(velocityY) == Math.signum(oldVelocityY)) {
-                velocityX += oldVelocityX;
-                velocityY += oldVelocityY;
+                velocityX += (int) oldVelocityX;
+                velocityY += (int) oldVelocityY;
             }
         }
 
@@ -521,7 +517,7 @@ public class Scroller  {
      * @return The elapsed time in milliseconds.
      */
     public int timePassed() {
-        return (int)(AnimationUtils.currentAnimationTimeMillis() - mStartTime);
+        return (int) (AnimationUtils.currentAnimationTimeMillis() - mStartTime);
     }
 
     /**
@@ -550,16 +546,15 @@ public class Scroller  {
         mFinished = false;
     }
 
-    /**
-     * @hide
-     */
     public boolean isScrollingInDirection(float xvel, float yvel) {
         return !mFinished && Math.signum(xvel) == Math.signum(mFinalX - mStartX) &&
                 Math.signum(yvel) == Math.signum(mFinalY - mStartY);
     }
 
     static class ViscousFluidInterpolator implements Interpolator {
-        /** Controls the viscous fluid effect (how much of it). */
+        /**
+         * Controls the viscous fluid effect (how much of it).
+         */
         private static final float VISCOUS_FLUID_SCALE = 8.0f;
 
         private static final float VISCOUS_FLUID_NORMALIZE;
@@ -576,10 +571,10 @@ public class Scroller  {
         private static float viscousFluid(float x) {
             x *= VISCOUS_FLUID_SCALE;
             if (x < 1.0f) {
-                x -= (1.0f - (float)Math.exp(-x));
+                x -= (1.0f - (float) Math.exp(-x));
             } else {
                 float start = 0.36787944117f;   // 1/e == exp(-1)
-                x = 1.0f - (float)Math.exp(1.0f - x);
+                x = 1.0f - (float) Math.exp(1.0f - x);
                 x = start + x * (1.0f - start);
             }
             return x;
