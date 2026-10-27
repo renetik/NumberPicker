@@ -6,6 +6,11 @@ stays `com.shawnlin.numberpicker`, so it replaces the upstream artifact without 
 
 Differences from upstream:
 
+- The value changes when the wheel moves more than half an item from centre, the boundary its snap
+  uses. Upstream changes at the text size: when the spacing between items exceeds the text, a drag
+  between two items reports the value flipping back and forth, and otherwise a release past halfway
+  reports the new value only after `SCROLL_STATE_IDLE`. Now each drag, fling or tap reports one change
+  per item crossed and none after idle. Idle is still reported when the snap starts.
 - Built with AGP 9.2.1, Gradle 9.5.0 and Java 21; compileSdk 37, minSdk 26, appcompat 1.7.1.
 - Published by JitPack from git tags instead of Maven Central; the sample app is removed.
 

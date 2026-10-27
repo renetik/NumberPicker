@@ -1263,7 +1263,8 @@ public class NumberPicker extends LinearLayout {
         }
         int[] selectorIndices = getSelectorIndices();
         int startScrollOffset = mCurrentScrollOffset;
-        int gap = (int) getMaxTextSize();
+        // The value changes at the same half-item boundary ensureScrollWheelAdjusted snaps to.
+        int valueChangeOffset = mSelectorElementSize / 2;
         if (isHorizontalMode()) {
             if (isAscendingOrder()) {
                 if (!mWrapSelectorWheel && x > 0
@@ -1318,7 +1319,7 @@ public class NumberPicker extends LinearLayout {
             mCurrentScrollOffset += y;
         }
 
-        while (mCurrentScrollOffset - mInitialScrollOffset > gap) {
+        while (mCurrentScrollOffset - mInitialScrollOffset > valueChangeOffset) {
             mCurrentScrollOffset -= mSelectorElementSize;
             if (isAscendingOrder()) {
                 decrementSelectorIndices(selectorIndices);
@@ -1330,7 +1331,7 @@ public class NumberPicker extends LinearLayout {
                 mCurrentScrollOffset = mInitialScrollOffset;
             }
         }
-        while (mCurrentScrollOffset - mInitialScrollOffset < -gap) {
+        while (mCurrentScrollOffset - mInitialScrollOffset < -valueChangeOffset) {
             mCurrentScrollOffset += mSelectorElementSize;
             if (isAscendingOrder()) {
                 incrementSelectorIndices(selectorIndices);
