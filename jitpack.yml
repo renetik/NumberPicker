@@ -1,0 +1,4 @@
+jdk:
+  - openjdk21
+install:
+  - ./gradlew :library:publishToMavenLocal -Pgroup=$GROUP -Pversion=$VERSION -x test -x lint --console=plain

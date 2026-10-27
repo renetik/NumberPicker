@@ -1,3 +1,41 @@
+# Renetik Fork
+
+Fork of [ShawnLin013/NumberPicker](https://github.com/ShawnLin013/NumberPicker) 2.4.13, used by
+[renetik-android](https://github.com/renetik/renetik-android) and published by JitPack. The package
+stays `com.shawnlin.numberpicker`, so it replaces the upstream artifact without code changes.
+
+Differences from upstream:
+
+- Built with AGP 9.2.1, Gradle 9.5.0 and Java 21; compileSdk 37, minSdk 26, appcompat 1.7.1.
+- Published by JitPack from git tags instead of Maven Central; the sample app is removed.
+
+### Dependency
+
+```gradle
+repositories {
+    maven { url = 'https://jitpack.io' }
+}
+
+dependencies {
+    implementation 'com.github.renetik:NumberPicker:<tag>'
+}
+```
+
+Use `master-SNAPSHOT` instead of a tag to test the latest `master`. Remove
+`io.github.ShawnLin013:number-picker` in the same change, so the classes are never on a classpath
+twice.
+
+### Release
+
+1. Check the build and tests locally:
+   `./gradlew :library:testDebugUnitTest :library:publishToMavenLocal -Pgroup=com.github.renetik -Pversion=0.0.0-local`
+2. Tag `master` with the version and push the tag: `git tag 2.5.0 && git push origin 2.5.0`.
+3. Request the POM until JitPack finishes the build and serves it:
+   `curl -fsSL https://jitpack.io/com/github/renetik/NumberPicker/2.5.0/NumberPicker-2.5.0.pom`.
+   The build log is at `https://jitpack.io/com/github/renetik/NumberPicker/2.5.0/build.log`.
+
+---
+
 # Number Picker
 
 The android library that provides a simple and customizable NumberPicker.
