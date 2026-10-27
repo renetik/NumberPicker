@@ -14,6 +14,8 @@ import android.widget.FrameLayout;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.shadows.ShadowLooper;
 
+import com.shawnlin.numberpicker.DrawnTextCanvas.DrawnText;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,27 +38,37 @@ final class NumberPickerDriver {
     private static int createdDriverCount;
 
     final NumberPicker picker;
+    private final WheelGeometry geometry;
     private final List<Integer> scrollStates = new ArrayList<>();
     private final List<Integer> values = new ArrayList<>();
     private int valueCountAtFirstIdle = -1;
     private final boolean isHorizontal;
     private final int touchSlop;
+    private final int width;
+    private final int height;
     private final int center;
     private long downTime;
 
     NumberPickerDriver(WheelGeometry geometry, int orientation, int order, int value) {
+        this(geometry, orientation, order, value, true);
+    }
+
+    NumberPickerDriver(WheelGeometry geometry, int orientation, int order, int value,
+                       boolean wrap) {
         // Robolectric resets the clock for each test, but pooled VelocityTrackers keep the times of
         // earlier movements, which would then look newer than this driver's touches.
         advance(DriverClockStepMillis * ++createdDriverCount);
         Context context = RuntimeEnvironment.getApplication();
+        this.geometry = geometry;
         isHorizontal = orientation == NumberPicker.HORIZONTAL;
         touchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
         picker = new NumberPicker(context);
         picker.setOrientation(orientation);
         picker.setOrder(order);
-        picker.setWheelItemCount(WheelGeometry.ItemCount);
+        picker.setWheelItemCount(geometry.itemCount);
         picker.setTextSize(geometry.textSize);
         picker.setSelectedTextSize(geometry.selectedTextSize);
+        picker.setWrapSelectorWheel(wrap);
         picker.setMinValue(0);
         picker.setMaxValue(ValueCount - 1);
         picker.setValue(value);
@@ -67,8 +79,8 @@ final class NumberPickerDriver {
                 valueCountAtFirstIdle = values.size();
         });
         new FrameLayout(context).addView(picker);
-        int width = isHorizontal ? geometry.length : WheelGeometry.CrossLength;
-        int height = isHorizontal ? WheelGeometry.CrossLength : geometry.length;
+        width = isHorizontal ? geometry.length : WheelGeometry.CrossLength;
+        height = isHorizontal ? WheelGeometry.CrossLength : geometry.length;
         picker.measure(makeMeasureSpec(width, EXACTLY), makeMeasureSpec(height, EXACTLY));
         picker.layout(0, 0, width, height);
         center = geometry.length / 2;
@@ -80,6 +92,17 @@ final class NumberPickerDriver {
 
     List<Integer> values() {
         return values;
+    }
+
+    /** Each item the wheel draws, in order along the wheel. */
+    List<DrawnText> drawnTexts() {
+        DrawnTextCanvas canvas = new DrawnTextCanvas(width, height);
+        picker.onDraw(canvas);
+        return canvas.drawnTexts;
+    }
+
+    String centreText() {
+        return drawnTexts().get(geometry.middleItemIndex()).text();
     }
 
     /** Values reported before the first {@link NumberPicker.OnScrollListener#SCROLL_STATE_IDLE}. */

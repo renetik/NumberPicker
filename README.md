@@ -11,6 +11,10 @@ Differences from upstream:
   between two items reports the value flipping back and forth, and otherwise a release past halfway
   reports the new value only after `SCROLL_STATE_IDLE`. Now each drag, fling or tap reports one change
   per item crossed and none after idle. Idle is still reported when the snap starts.
+- In descending order the item drawn at the centre is the value with any item count; upstream
+  draws the value minus one there when the count is even.
+- A tap is matched to the item drawn under it. Upstream counts items from the wheel's edge, so with
+  an even item count a tap on the item next to the centre can change nothing.
 - Built with AGP 9.2.1, Gradle 9.5.0 and Java 21; compileSdk 37, minSdk 26, appcompat 1.7.1.
 - Published by JitPack from git tags instead of Maven Central; the sample app is removed.
 

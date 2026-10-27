@@ -1110,8 +1110,7 @@ public class NumberPicker extends LinearLayout {
                         int eventX = (int) event.getX();
                         int deltaMoveX = (int) Math.abs(eventX - mLastDownEventX);
                         if (deltaMoveX <= mTouchSlop) {
-                            int selectorIndexOffset = (eventX / mSelectorElementSize)
-                                    - mWheelMiddleItemIndex;
+                            int selectorIndexOffset = getItemOffsetFromMiddle(eventX);
                             if (selectorIndexOffset > 0) {
                                 changeValueByOne(true);
                             } else if (selectorIndexOffset < 0) {
@@ -1133,8 +1132,7 @@ public class NumberPicker extends LinearLayout {
                         int eventY = (int) event.getY();
                         int deltaMoveY = (int) Math.abs(eventY - mLastDownEventY);
                         if (deltaMoveY <= mTouchSlop) {
-                            int selectorIndexOffset = (eventY / mSelectorElementSize)
-                                    - mWheelMiddleItemIndex;
+                            int selectorIndexOffset = getItemOffsetFromMiddle(eventY);
                             if (selectorIndexOffset > 0) {
                                 changeValueByOne(true);
                             } else if (selectorIndexOffset < 0) {
@@ -1262,29 +1260,30 @@ public class NumberPicker extends LinearLayout {
             return;
         }
         int[] selectorIndices = getSelectorIndices();
+        int valueItemIndex = getWheelValueItemIndex();
         int startScrollOffset = mCurrentScrollOffset;
         // The value changes at the same half-item boundary ensureScrollWheelAdjusted snaps to.
         int valueChangeOffset = mSelectorElementSize / 2;
         if (isHorizontalMode()) {
             if (isAscendingOrder()) {
                 if (!mWrapSelectorWheel && x > 0
-                        && selectorIndices[mWheelMiddleItemIndex] <= mMinValue) {
+                        && selectorIndices[valueItemIndex] <= mMinValue) {
                     mCurrentScrollOffset = mInitialScrollOffset;
                     return;
                 }
                 if (!mWrapSelectorWheel && x < 0
-                        && selectorIndices[mWheelMiddleItemIndex] >= mMaxValue) {
+                        && selectorIndices[valueItemIndex] >= mMaxValue) {
                     mCurrentScrollOffset = mInitialScrollOffset;
                     return;
                 }
             } else {
                 if (!mWrapSelectorWheel && x > 0
-                        && selectorIndices[mWheelMiddleItemIndex] >= mMaxValue) {
+                        && selectorIndices[valueItemIndex] >= mMaxValue) {
                     mCurrentScrollOffset = mInitialScrollOffset;
                     return;
                 }
                 if (!mWrapSelectorWheel && x < 0
-                        && selectorIndices[mWheelMiddleItemIndex] <= mMinValue) {
+                        && selectorIndices[valueItemIndex] <= mMinValue) {
                     mCurrentScrollOffset = mInitialScrollOffset;
                     return;
                 }
@@ -1294,23 +1293,23 @@ public class NumberPicker extends LinearLayout {
         } else {
             if (isAscendingOrder()) {
                 if (!mWrapSelectorWheel && y > 0
-                        && selectorIndices[mWheelMiddleItemIndex] <= mMinValue) {
+                        && selectorIndices[valueItemIndex] <= mMinValue) {
                     mCurrentScrollOffset = mInitialScrollOffset;
                     return;
                 }
                 if (!mWrapSelectorWheel && y < 0
-                        && selectorIndices[mWheelMiddleItemIndex] >= mMaxValue) {
+                        && selectorIndices[valueItemIndex] >= mMaxValue) {
                     mCurrentScrollOffset = mInitialScrollOffset;
                     return;
                 }
             } else {
                 if (!mWrapSelectorWheel && y > 0
-                        && selectorIndices[mWheelMiddleItemIndex] >= mMaxValue) {
+                        && selectorIndices[valueItemIndex] >= mMaxValue) {
                     mCurrentScrollOffset = mInitialScrollOffset;
                     return;
                 }
                 if (!mWrapSelectorWheel && y < 0
-                        && selectorIndices[mWheelMiddleItemIndex] <= mMinValue) {
+                        && selectorIndices[valueItemIndex] <= mMinValue) {
                     mCurrentScrollOffset = mInitialScrollOffset;
                     return;
                 }
@@ -1326,8 +1325,8 @@ public class NumberPicker extends LinearLayout {
             } else {
                 incrementSelectorIndices(selectorIndices);
             }
-            setValueInternal(selectorIndices[mWheelMiddleItemIndex], true);
-            if (!mWrapSelectorWheel && selectorIndices[mWheelMiddleItemIndex] < mMinValue) {
+            setValueInternal(selectorIndices[valueItemIndex], true);
+            if (!mWrapSelectorWheel && selectorIndices[valueItemIndex] < mMinValue) {
                 mCurrentScrollOffset = mInitialScrollOffset;
             }
         }
@@ -1338,8 +1337,8 @@ public class NumberPicker extends LinearLayout {
             } else {
                 decrementSelectorIndices(selectorIndices);
             }
-            setValueInternal(selectorIndices[mWheelMiddleItemIndex], true);
-            if (!mWrapSelectorWheel && selectorIndices[mWheelMiddleItemIndex] > mMaxValue) {
+            setValueInternal(selectorIndices[valueItemIndex], true);
+            if (!mWrapSelectorWheel && selectorIndices[valueItemIndex] > mMaxValue) {
                 mCurrentScrollOffset = mInitialScrollOffset;
             }
         }
@@ -2061,8 +2060,9 @@ public class NumberPicker extends LinearLayout {
         mSelectorIndexToStringCache.clear();
         int[] selectorIndices = getSelectorIndices();
         int current = getValue();
+        int valueItemIndex = getWheelValueItemIndex();
         for (int i = 0; i < selectorIndices.length; i++) {
-            int selectorIndex = current + (i - mWheelMiddleItemIndex);
+            int selectorIndex = current + (i - valueItemIndex);
             if (mWrapSelectorWheel) {
                 selectorIndex = getWrappedSelectorIndex(selectorIndex);
             }
@@ -2134,7 +2134,7 @@ public class NumberPicker extends LinearLayout {
      * @param position The wheel position to scroll to.
      */
     public void smoothScrollToPosition(int position) {
-        final int currentPosition = getSelectorIndices()[mWheelMiddleItemIndex];
+        final int currentPosition = getSelectorIndices()[getWheelValueItemIndex()];
         if (currentPosition == position) {
             return;
         }
@@ -2254,6 +2254,24 @@ public class NumberPicker extends LinearLayout {
 
     private int[] getSelectorIndices() {
         return mSelectorIndices;
+    }
+
+    /**
+     * Number of items between the middle item and the item drawn at {@code position} along the
+     * wheel, negative before the middle.
+     */
+    private int getItemOffsetFromMiddle(int position) {
+        int middleItemCenter = mCurrentScrollOffset + mWheelMiddleItemIndex * mSelectorElementSize;
+        return Math.round((position - middleItemCenter) / (float) mSelectorElementSize);
+    }
+
+    /**
+     * Index of the selector item that holds the value. Descending order draws the selector indices
+     * reversed, so the value sits in the item drawn at the middle.
+     */
+    private int getWheelValueItemIndex() {
+        return isAscendingOrder() ? mWheelMiddleItemIndex
+                : mSelectorIndices.length - 1 - mWheelMiddleItemIndex;
     }
 
     /**
@@ -2713,6 +2731,8 @@ public class NumberPicker extends LinearLayout {
      */
     public void setOrder(@Order int order) {
         mOrder = order;
+        initializeSelectorWheelIndices();
+        invalidate();
     }
 
     public void setOrientation(@Orientation int orientation) {
