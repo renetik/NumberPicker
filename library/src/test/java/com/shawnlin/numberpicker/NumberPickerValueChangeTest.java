@@ -33,9 +33,9 @@ public class NumberPickerValueChangeTest {
     }
 
     @Test
-    public void releaseInsideBandChangesOnce() {
+    public void releasePastHalfItemChangesOnce() {
         NumberPickerDriver wheel = createWheel(NumberPicker.VERTICAL, NumberPicker.ASCENDING);
-        wheel.dragAndRelease(geometry.bandReleaseOffset);
+        wheel.dragAndRelease(geometry.pastHalfReleaseOffset);
         assertValueChanges(wheel, InitialValue - 1);
     }
 
@@ -68,16 +68,16 @@ public class NumberPickerValueChangeTest {
     }
 
     @Test
-    public void descendingReleaseInsideBandChangesOnce() {
+    public void descendingReleasePastHalfItemChangesOnce() {
         NumberPickerDriver wheel = createWheel(NumberPicker.VERTICAL, NumberPicker.DESCENDING);
-        wheel.dragAndRelease(geometry.bandReleaseOffset);
+        wheel.dragAndRelease(geometry.pastHalfReleaseOffset);
         assertValueChanges(wheel, InitialValue + 1);
     }
 
     @Test
-    public void horizontalReleaseInsideBandChangesOnce() {
+    public void horizontalReleasePastHalfItemChangesOnce() {
         NumberPickerDriver wheel = createWheel(NumberPicker.HORIZONTAL, NumberPicker.ASCENDING);
-        wheel.dragAndRelease(geometry.bandReleaseOffset);
+        wheel.dragAndRelease(geometry.pastHalfReleaseOffset);
         assertValueChanges(wheel, InitialValue - 1);
     }
 

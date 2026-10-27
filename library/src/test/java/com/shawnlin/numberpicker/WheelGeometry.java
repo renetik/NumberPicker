@@ -2,8 +2,9 @@ package com.shawnlin.numberpicker;
 
 /**
  * A seven item wheel laid out along {@code length} pixels. {@code itemSize} is the text plus the
- * spacing the picker derives from that layout, and {@code bandReleaseOffset} lies past half an
- * item, where upstream 2.4.13 reports more than one value change for a release.
+ * spacing the picker derives from that layout. {@code pastHalfReleaseOffset} lies past half an
+ * item, where upstream 2.4.13 misreports a release: the value flipping when the spacing exceeds
+ * the text, and a change after idle when it does not.
  */
 final class WheelGeometry {
 
@@ -15,16 +16,16 @@ final class WheelGeometry {
     final float textSize;
     final float selectedTextSize;
     final int itemSize;
-    final int bandReleaseOffset;
+    final int pastHalfReleaseOffset;
 
     WheelGeometry(String name, int length, float textSize, float selectedTextSize,
-                  int itemSize, int bandReleaseOffset) {
+                  int itemSize, int pastHalfReleaseOffset) {
         this.name = name;
         this.length = length;
         this.textSize = textSize;
         this.selectedTextSize = selectedTextSize;
         this.itemSize = itemSize;
-        this.bandReleaseOffset = bandReleaseOffset;
+        this.pastHalfReleaseOffset = pastHalfReleaseOffset;
     }
 
     @Override
